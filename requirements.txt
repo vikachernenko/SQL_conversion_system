@@ -1,0 +1,10 @@
+streamlit
+pandas
+plotly
+sqlalchemy
+psycopg2-binary
+langchain
+langchain-community
+langchain-core
+langchain-ollama
+datasets
