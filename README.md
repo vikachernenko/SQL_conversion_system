@@ -89,7 +89,7 @@ python -m venv venv
 Активируйте его:
 
 ```bash
-windows: \venv|Scripts\activate'
+windows: \venv\Scripts\activate'
 
 unix: source "/venv./bin/activate
 ```
