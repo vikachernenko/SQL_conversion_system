@@ -14,7 +14,7 @@ st.title("🏛 Universal AI SQL Assistant")
 
 st.sidebar.header("Глобальные настройки")
 lang = st.sidebar.selectbox("Язык запроса и ответа", [
-                            "Русский", "English", "Татарча"])
+                            "Русский", "English"])
 db_dialect = st.sidebar.selectbox("Выберите СУБД", ["SQLite", "PostgreSQL"])
 rag_source = st.sidebar.selectbox("Источник знаний (RAG)", ["Spider", "BIRD"])
 
