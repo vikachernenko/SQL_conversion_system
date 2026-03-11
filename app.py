@@ -7,7 +7,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from datasets import load_dataset
 import sqlite3
 import json
-import os  # ДОБАВЛЕН НЕОБХОДИМЫЙ ИМПОРТ
+import os
 
 st.set_page_config(page_title="Universal AI SQL Assistant", layout="wide")
 st.title("🏛 Universal AI SQL Assistant")
@@ -112,7 +112,6 @@ def get_db_context(engine, rag_source):
     return context
 
 
-# Общая функция вызова LLM
 def call_agent(system_prompt, user_prompt, require_json=False):
     llm = ChatOllama(model="llama3", base_url="http://localhost:11434", temperature=0)
 
@@ -154,7 +153,6 @@ def agent_analyzer(query, schema):
         return {"status": "clear"}
 
 
-# АГЕНТ 2: Генератор SQL (Усиленный промпт против галлюцинаций)
 def agent_sql_generator(query, schema, error_msg="", previous_sql=""):
     system_prompt = f"""Ты — Senior SQL Разработчик. Твоя целевая СУБД: {db_dialect}. 
     Напиши SQL запрос для решения задачи. Верни ТОЛЬКО чистый SQL-код, без текста вокруг.
@@ -169,14 +167,12 @@ def agent_sql_generator(query, schema, error_msg="", previous_sql=""):
     СХЕМА БД:
     {schema}"""
 
-    # Формируем запрос с учетом истории ошибок
     user_prompt = f"Запрос: {query}"
     if error_msg and previous_sql:
         user_prompt += f"\n\nВНИМАНИЕ! Твой прошлый запрос упал с ошибкой!\nТвой прошлый код:\n{previous_sql}\nОшибка БД:\n{error_msg}\nИсправь свой код, проверь названия таблиц/колонок и синтаксис!"
 
     response = call_agent(system_prompt, user_prompt)
 
-    # Очистка от маркдауна (надежный способ)
     sql = response.strip()
     if sql.startswith("```sql"):
         sql = sql[6:]
@@ -190,9 +186,7 @@ def agent_sql_generator(query, schema, error_msg="", previous_sql=""):
     return sql.strip()
 
 
-# АГЕНТ 3: Эксперт по визуализации (Умный выбор графика)
 def agent_visualization(df):
-    # Передаем модели типы колонок и ПЕРВУЮ СТРОКУ ДАННЫХ, чтобы она видела реальные названия столбцов
     columns_info = df.dtypes.astype(str).to_dict()
     sample_data = df.head(1).to_dict(orient='records')
 
@@ -237,7 +231,7 @@ if st.session_state.db_path:
             if msg.get("df") is not None:
                 st.dataframe(msg["df"], use_container_width=True)
 
-            if msg.get("fig") is not None:  # <--- Главное исправление здесь
+            if msg.get("fig") is not None:
                 st.plotly_chart(msg["fig"], use_container_width=True)
 
             if msg.get("sql") is not None:
@@ -269,14 +263,14 @@ if st.session_state.db_path:
                     err_msg = ""
                     df = None
 
-                    for attempt in range(3):  # Даем Агенту 3 попытки исправить ошибку
+                    for attempt in range(3):
                         current_sql = agent_sql_generator(full_query, schema, err_msg, sql_code)
-                        sql_code = current_sql  # сохраняем для следующей итерации или вывода
+                        sql_code = current_sql
 
                         try:
                             df = pd.read_sql_query(text(sql_code), engine)
-                            err_msg = ""  # Если успешно, очищаем ошибку
-                            break  # Успешно! Выходим из цикла
+                            err_msg = ""
+                            break
                         except Exception as e:
                             err_msg = str(e)
                             print(f"Попытка {attempt + 1} провалена. Ошибка: {err_msg}")
